@@ -23,6 +23,7 @@ export default function Home() {
   const [captions, setCaptions] = useState<string[] | null>(null);
   const [articleTitle, setArticleTitle] = useState<string | null>(null);
   const [mainImagePrompt, setMainImagePrompt] = useState<string | null>(null);
+  const [tags, setTags] = useState<string[] | null>(null);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -56,6 +57,7 @@ export default function Home() {
           setPrompts(data.prompts);
           setArticleTitle(data.articleTitle);
           setMainImagePrompt(data.mainImagePrompt);
+          setTags(data.tags);
     } catch (error) {
       console.error(error);
       // 에러 객체의 메시지를 경고창에 표시
@@ -71,7 +73,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center p-6 sm:p-12 bg-gray-50">
       <div className="w-full max-w-3xl">
         <header className="text-center mb-8">
-          <h1 className="text-6xl sm:text-7xl font-bold mb-2 font-poppins">Gleam News</h1>
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-2 font-poppins">Gleam News</h1>
           <p className="text-md sm:text-lg text-gray-600">AI 프롬프트로 만나는 네컷 뉴스</p>
         </header>
 
@@ -116,7 +118,16 @@ export default function Home() {
 
         {summary && prompts && articleTitle && mainImagePrompt && (
           <section>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-center">{articleTitle}</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-center">{articleTitle}</h2>
+            {tags && tags.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-2 mb-4">
+                {tags.map((tag, index) => (
+                  <span key={index} className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="bg-gray-100 p-3 rounded-md mb-6">
               <p className="text-sm text-gray-500 mb-2">⬇️ 전체 기사 테마 배경 이미지 프롬프트:</p>
               <p className="font-mono text-sm text-gray-700 leading-relaxed">{mainImagePrompt}</p>

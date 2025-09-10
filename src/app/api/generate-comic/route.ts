@@ -17,16 +17,18 @@ async function getAiResponse(article: string, apiKey: string, imageStyle: string
     2.  **Generate Prompts**: For each of the 4 summary points, create a detailed and visually rich prompt for an image generation AI, in the ${imageStyle} style. Based on the news article's primary geographical or cultural context, describe human characters as either 'East Asian' or 'Western' (Caucasian). The prompts should be in English. Each prompt must end with "--ar 1:1".
 
     3.  **Generate Captions**: For each of the 4 summary points, create a detailed caption in Korean, describing the scene or event for the comic panel. Each caption should be around 50 Korean characters, providing more descriptive detail.
+    4.  **Generate Tags**: Create a list of 5 to 7 concise Korean keywords that represent the entire article's main topics.
 
     The final output MUST be a single, valid JSON object. Do NOT include any other text or conversational elements outside of this JSON object.
-    The JSON object MUST have five keys: "articleTitle" (a string), "mainImagePrompt" (a string), "summary" (an array of 4 Korean strings), "captions" (an array of 4 Korean strings), and "prompts" (an array of 4 English strings).
+    The JSON object MUST have six keys: "articleTitle" (a string), "mainImagePrompt" (a string), "summary" (an array of 4 Korean strings), "captions" (an array of 4 Korean strings), "prompts" (an array of 4 English strings), and "tags" (an array of Korean strings).
     Example format:
     {
       "articleTitle": "기사 제목 예시",
       "mainImagePrompt": "A background image representing the theme --ar 1:1",
       "summary": ["Summary 1", "Summary 2", "Summary 3", "Summary 4"],
       "captions": ["Caption 1", "Caption 2", "Caption 3", "Caption 4"],
-      "prompts": ["Prompt 1 --ar 1:1", "Prompt 2 --ar 1:1", "Prompt 3 --ar 1:1", "Prompt 4 --ar 1:1"]
+      "prompts": ["Prompt 1 --ar 1:1", "Prompt 2 --ar 1:1", "Prompt 3 --ar 1:1", "Prompt 4 --ar 1:1"],
+      "tags": ["#핵심태그1", "#핵심태그2", "#핵심태그3", "#핵심태그4", "#핵심태그5"]
     }
 
     Here is the article:
