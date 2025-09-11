@@ -2,6 +2,28 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+function isValidUrl(string: string) {
+  try {
+    new URL(string);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function fetchUrlContent(url: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.text();
+  } catch (error) {
+    console.error(`Failed to fetch URL content from ${url}:`, error);
+    throw new Error(`URL content fetch failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
 async function generateTextData(apiKey: string, article: string, imageStyle: string) {
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
@@ -64,8 +86,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Article content is required.' }, { status: 400 });
     }
 
+    let processedArticle = article;
+    if (isValidUrl(article)) {
+      try {
+        processedArticle = await fetchUrlContent(article);
+      } catch (error) {
+        return NextResponse.json({ error: `Failed to fetch article from URL: ${error instanceof Error ? error.message : 'Unknown error'}` }, { status: 500 });
+      }
+    }
+
     // 1. 텍스트 데이터 (프롬프트 포함) 생성
-    const textData = await generateTextData(apiKey, article, selectedStyle);
+    const textData = await generateTextData(apiKey, processedArticle, selectedStyle);
 
     // 2. 생성된 프롬프트를 사용하여 이미지 생성
     const panelPrompts = textData.prompts.map((p: string) => p.replace(/--ar 1:1/g, '').trim());
@@ -77,8 +108,15 @@ export async function POST(request: Request) {
     --ar 1:1`;
     // 2. 이미지 생성 기능은 사용하지 않고 텍스트 데이터만 반환
     const finalData = {
-      ...textData,
-      combinedPrompt: combinedPrompt, // Add combinedPrompt here
+      articleTitle: textData.articleTitle,
+      summary: textData.summary,
+      captions: textData.captions,
+      prompts: textData.prompts,
+      tags: textData.tags,
+      mainImagePrompt: textData.mainImagePrompt,
+      combinedPrompt: combinedPrompt,
+      originalArticleInput: originalArticleInput,
+      isUrl: isUrl,
       images: [], // 이미지 생성 기능을 사용하지 않으므로 빈 배열 반환
     };
 

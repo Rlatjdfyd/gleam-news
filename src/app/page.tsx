@@ -26,11 +26,21 @@ export default function Home() {
   const [tags, setTags] = useState<string[] | null>(null);
   const [mainImagePrompt, setMainImagePrompt] = useState<string | null>(null); // Re-add this line
   const [combinedPromptText, setCombinedPromptText] = useState<string | null>(null); // Add this line
+  const [originalArticleInput, setOriginalArticleInput] = useState<string | null>(null); // Add this line
+  const [isUrl, setIsUrl] = useState<boolean>(false); // Add this line
 
   const handleDownload = () => {
-    if (!articleTitle || !tags || !summary || !captions || !prompts || !mainImagePrompt || !combinedPromptText) return; // Add combinedPromptText to check
+    if (!articleTitle || !tags || !summary || !captions || !prompts || !mainImagePrompt || !combinedPromptText || !originalArticleInput) return; // Add originalArticleInput to check
 
-    let content = `기사 제목: ${articleTitle}\n\n`;
+    let content = '';
+
+    if (isUrl) {
+      content += `기사 출처 URL: ${originalArticleInput}\n\n`;
+    } else {
+      content += `원본 기사 내용:\n${originalArticleInput}\n\n`;
+    }
+
+    content += `기사 제목: ${articleTitle}\n\n`;
     
     if (tags && tags.length > 0) {
       content += `태그: ${tags.join(', ')}\n\n`;
@@ -105,6 +115,8 @@ export default function Home() {
       setTags(data.tags);
       setMainImagePrompt(data.mainImagePrompt); // Re-add this line
       setCombinedPromptText(data.combinedPrompt); // Add this line
+      setOriginalArticleInput(data.originalArticleInput); // Add this line
+      setIsUrl(data.isUrl); // Add this line
 
     } catch (error) {
       console.error(error);
