@@ -49,27 +49,7 @@ async function generateTextData(apiKey: string, article: string, imageStyle: str
   return JSON.parse(cleanedJsonString);
 }
 
-async function generateImages(apiKey: string, prompts: string[]) {
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-image-preview' });
 
-  const images = [];
-  for (const prompt of prompts) {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const part = response.candidates?.[0]?.content.parts[0];
-    if (part && 'inlineData' in part) {
-      images.push(part.inlineData.data);
-    } else {
-      console.warn(`Image generation failed for prompt: "${prompt}"`);
-      images.push(null);
-    }
-    // Add a 10-second delay to respect the Free Tier rate limit
-    await new Promise(resolve => setTimeout(resolve, 10000));
-  }
-
-  return images;
-}
 
 export async function POST(request: Request) {
   try {
