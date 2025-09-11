@@ -18,20 +18,17 @@ export default function Home() {
   const [article, setArticle] = useState('');
   const [selectedStyle, setSelectedStyle] = useState(IMAGE_STYLES[0].value);
   const [loading, setLoading] = useState(false);
+  const [showStyleSelector, setShowStyleSelector] = useState(false); // Add this line
   const [summary, setSummary] = useState<string[] | null>(null);
-  const [prompts, setPrompts] = useState<string[] | null>(null);
+  const [prompts, setPrompts] = useState<string[] | null>(null); // Keep for download
   const [captions, setCaptions] = useState<string[] | null>(null);
   const [articleTitle, setArticleTitle] = useState<string | null>(null);
-  const [mainImagePrompt, setMainImagePrompt] = useState<string | null>(null);
   const [tags, setTags] = useState<string[] | null>(null);
-
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    alert('프롬프트가 복사되었습니다!');
-  };
+  const [mainImagePrompt, setMainImagePrompt] = useState<string | null>(null); // Re-add this line
+  const [combinedPromptText, setCombinedPromptText] = useState<string | null>(null); // Add this line
 
   const handleDownload = () => {
-    if (!articleTitle || !tags || !summary || !captions || !prompts) return;
+    if (!articleTitle || !tags || !summary || !captions || !prompts || !mainImagePrompt || !combinedPromptText) return; // Add combinedPromptText to check
 
     let content = `기사 제목: ${articleTitle}\n\n`;
     
@@ -39,15 +36,18 @@ export default function Home() {
       content += `태그: ${tags.join(', ')}\n\n`;
     }
 
+    // Re-add mainImagePrompt here
+    content += `메인 이미지 프롬프트: ${mainImagePrompt}\n\n`;
+
+    // Add combinedPromptText here
+    content += `통합 패널 프롬프트: ${combinedPromptText}\n\n`;
+
     content += '---'.repeat(10) + '\n\n';
 
     summary.forEach((cutSummary, index) => {
       content += `🎬 컷 #${index + 1}: ${cutSummary}\n`;
       if (captions && captions[index]) {
         content += `요약: ${captions[index]}\n`;
-      }
-      if (prompts && prompts[index]) {
-        content += `프롬프트: ${prompts[index]}\n\n`;
       }
     });
 
@@ -63,11 +63,25 @@ export default function Home() {
     URL.revokeObjectURL(url);
   };
 
+  const handleClear = () => {
+    setArticle('');
+    setSelectedStyle(IMAGE_STYLES[0].value); // Reset to default style
+    setLoading(false);
+    setSummary(null);
+    setPrompts(null);
+    setCaptions(null);
+    setArticleTitle(null);
+    setTags(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setSummary(null);
     setPrompts(null);
+    setCaptions(null);
+    setArticleTitle(null);
+    setTags(null);
 
     try {
       const response = await fetch('/api/generate-comic', {
@@ -81,19 +95,19 @@ export default function Home() {
       const data = await response.json();
 
       if (!response.ok) {
-        // 서버가 보낸 상세 에러 메시지를 사용
         throw new Error(data.error || '알 수 없는 에러가 발생했습니다.');
       }
 
       setSummary(data.summary);
-          setCaptions(data.captions);
-          setPrompts(data.prompts);
-          setArticleTitle(data.articleTitle);
-          setMainImagePrompt(data.mainImagePrompt);
-          setTags(data.tags);
+      setCaptions(data.captions);
+      setPrompts(data.prompts);
+      setArticleTitle(data.articleTitle);
+      setTags(data.tags);
+      setMainImagePrompt(data.mainImagePrompt); // Re-add this line
+      setCombinedPromptText(data.combinedPrompt); // Add this line
+
     } catch (error) {
       console.error(error);
-      // 에러 객체의 메시지를 경고창에 표시
       if (error instanceof Error) {
         alert(`오류 발생: ${error.message}`);
       }
@@ -111,21 +125,34 @@ export default function Home() {
         </header>
 
         <form onSubmit={handleSubmit} className="mb-8">
-          <div className="mb-4">
-            <label htmlFor="image-style" className="block text-lg font-medium text-gray-700 mb-2">이미지 스타일 선택:</label>
-            <select
-              id="image-style"
-              value={selectedStyle}
-              onChange={(e) => setSelectedStyle(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 transition text-base"
-            >
-              {IMAGE_STYLES.map((style) => (
-                <option key={style.value} value={style.value}>
-                  {style.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Toggle button for style selection */}
+          <button
+            type="button" // Important: not submit
+            onClick={() => setShowStyleSelector(!showStyleSelector)}
+            className="w-full mt-4 px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-300 transition-colors text-base"
+          >
+            {showStyleSelector ? '스타일 선택 닫기' : '스타일 선택 열기'}
+          </button>
+
+          {showStyleSelector && (
+            <> {/* Added fragment */}
+              <div className="mb-4 mt-4"> {/* Added mt-4 for spacing */}
+                {/* Removed label for image style selection */}
+                <select
+                  id="image-style"
+                  value={selectedStyle}
+                  onChange={(e) => setSelectedStyle(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 transition text-base"
+                >
+                  {IMAGE_STYLES.map((style) => (
+                    <option key={style.value} value={style.value}>
+                      {style.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </> // Added fragment
+          )}
           <textarea
             value={article}
             onChange={(e) => setArticle(e.target.value)}
@@ -138,18 +165,18 @@ export default function Home() {
             disabled={loading || !article}
             className="w-full mt-4 px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors text-lg"
           >
-            {loading ? '프롬프트를 생성하는 중...' : 'AI 프롬프트 생성하기'}
+            {loading ? 'AI가 만화를 생성하는 중...' : '글램뉴스 생성하기'}
           </button>
         </form>
 
         {loading && (
           <div className="text-center p-8">
-            <p className="text-lg">AI가 기사를 분석하고 있습니다...</p>
-            <p className="text-sm text-gray-600">최고의 프롬프트를 만들기 위해 잠시만 기다려주세요!</p>
+            <p className="text-lg">AI가 기사를 분석하고 이미지를 생성하고 있습니다...</p>
+            <p className="text-sm text-gray-600">최대 1~2분 정도 소요될 수 있습니다. 잠시만 기다려주세요!</p>
           </div>
         )}
 
-        {summary && prompts && articleTitle && mainImagePrompt && (
+        {summary && articleTitle && (
           <section>
             <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-center">{articleTitle}</h2>
             {tags && tags.length > 0 && (
@@ -162,41 +189,33 @@ export default function Home() {
               </div>
             )}
 
-            <button
-              onClick={handleDownload}
-              className="w-full mb-6 px-4 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition-colors text-lg"
-            >
-              기사 내용 텍스트 파일로 다운로드
-            </button>
-
-            <div className="bg-gray-100 p-3 rounded-md mb-6">
-              <p className="text-sm text-gray-500 mb-2">⬇️ 전체 기사 테마 배경 이미지 프롬프트:</p>
-              <p className="font-mono text-sm text-gray-700 leading-relaxed">{mainImagePrompt}</p>
+            {prompts && (
               <button
-                onClick={() => handleCopy(mainImagePrompt)}
-                className="w-full mt-3 px-3 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-sm hover:bg-green-600 transition-colors text-sm"
+                onClick={handleDownload}
+                className="w-full mb-6 px-4 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition-colors text-lg"
               >
-                프롬프트 복사하기
+                프롬프트 다운로드
               </button>
-            </div>
+            )}
+
+            {/* No image display */}
+
+            {/* Display summary and captions as a list */}
             <div className="space-y-6">
-              {summary.map((caption, index) => (
+              {summary.map((cutSummary, index) => (
                 <div key={index} className="border-2 border-gray-200 p-4 rounded-lg bg-white shadow">
-                  <h3 className="text-lg font-semibold mb-2 text-gray-800">🎬 컷 #{index + 1}: {caption}</h3>
-                  {captions && <p className="text-md text-gray-700 mb-3">{captions[index]}</p>} {/* Add this line */}
-                  <div className="bg-gray-100 p-3 rounded-md">
-                    <p className="text-sm text-gray-500 mb-2">⬇️ 아래 프롬프트를 복사해서 이미지 생성 AI에 사용해 보세요.</p>
-                    <p className="font-mono text-sm text-gray-700 leading-relaxed">{prompts[index]}</p>
-                  </div>
-                  <button
-                    onClick={() => handleCopy(prompts[index])}
-                    className="w-full mt-3 px-3 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-sm hover:bg-green-600 transition-colors text-sm"
-                  >
-                    프롬프트 복사하기
-                  </button>
+                  <h3 className="text-lg font-semibold mb-2 text-gray-800">• 컷 #{index + 1}: {cutSummary}</h3>
+                  {captions && <p className="text-md text-gray-700 mt-3">{captions[index]}</p>}
                 </div>
               ))}
             </div>
+            {/* Add the new Clear button here */}
+            <button
+              onClick={handleClear}
+              className="w-full mt-6 px-4 py-3 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors text-lg"
+            >
+              화면 지우기
+            </button>
           </section>
         )}
       </div>
