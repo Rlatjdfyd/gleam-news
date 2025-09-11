@@ -34,7 +34,7 @@ async function generateTextData(apiKey: string, article: string, imageStyle: str
     Avoid using specific personal names or exact geographical locations in the summary, captions, and prompts. Instead, use general terms like 'a person,' 'the city,' 'the region,' or 'the individual' where appropriate.
 
     Perform the following tasks:
-    0.  **Extract Article Title**: Identify the main title of the provided news article. This MUST be a concise, single-line title, and it MUST be in Korean. Do NOT use English for the article title.
+    0.  **Generate Article Title**: Create a concise, single-line, catchy title for the 4-cut comic based on the provided news article. This MUST be in Korean. Do NOT use English for the article title.
     1.  **Summarize**: Create a 4-point summary of the article. Each point will be a title for a comic panel and must be concise, under 15 Korean characters.
     2.  **Generate Prompts**: For each of the 4 summary points, create a detailed and visually rich prompt for an image generation AI. Based on the news article's primary geographical or cultural context, describe human characters as either 'East Asian' or 'Western' (Caucasian). The prompts should be in English. Each prompt must end with "--ar 1:1".
 

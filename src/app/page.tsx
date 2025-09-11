@@ -63,10 +63,15 @@ export default function Home() {
 
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
 
-    // Clean up the URL object after a short delay
-    setTimeout(() => URL.revokeObjectURL(url), 100);
+    const link = document.createElement('a');
+    link.href = url;
+    const fileName = `${articleTitle.replace(/[^a-z0-9가-힣]/gi, '_')}.txt`;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click(); // Use link.click() for PC
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleClear = () => {
