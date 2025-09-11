@@ -4,11 +4,7 @@ import { useState } from 'react';
 
 export default function Home() {
   const IMAGE_STYLES = [
-    { name: '픽사 스타일', value: 'vibrant and expressive Pixar animation style' },
-    { name: '지브리 스타일', value: 'whimsical and fantastical style of Studio Ghibli' },
-    { name: '카툰 네트워크 스타일', value: 'bold and quirky Cartoon Network animation style' },
-    { name: '아메리칸 코믹스 스타일', value: 'dynamic and bold American comic book style' },
-    { name: '유럽 만화 (방드 데시네) 스타일', value: 'detailed and elegant European comic (bande dessinée) style' },
+    { name: '미니어처 디오라마 스타일', value: 'tilt-shift photography, miniature effect, diorama style' },
     { name: '한국 수묵화 스타일', value: 'traditional Korean ink wash painting style, serene and artistic' },
     { name: '애니메이션 스타일', value: 'anime style' },
     { name: '픽셀 아트 스타일', value: 'pixel art style' },
