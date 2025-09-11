@@ -86,19 +86,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Article content is required.' }, { status: 400 });
     }
 
-    let processedArticle = article;
+    let processedArticle: string = article || '';
+    let isUrl: boolean = false;
+    let originalArticleInput: string = article || '';
+
     if (isValidUrl(article)) {
+      isUrl = true;
+      originalArticleInput = article;
       try {
         processedArticle = await fetchUrlContent(article);
       } catch (error) {
         return NextResponse.json({ error: `Failed to fetch article from URL: ${error instanceof Error ? error.message : 'Unknown error'}` }, { status: 500 });
       }
+    } else {
+      originalArticleInput = article;
     }
 
     // 1. 텍스트 데이터 (프롬프트 포함) 생성
     const textData = await generateTextData(apiKey, processedArticle, selectedStyle);
 
-    // 2. 생성된 프롬프트를 사용하여 이미지 생성
+    // 2. 이미지 생성 기능은 사용하지 않고 텍스트 데이터만 반환
     const panelPrompts = textData.prompts.map((p: string) => p.replace(/--ar 1:1/g, '').trim());
     const combinedPrompt = `A ${selectedStyle} illustration of the news article, shown in four panels in a 2x2 grid layout within one image:
     - Panel 1: ${panelPrompts[0]}
