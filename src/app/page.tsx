@@ -30,6 +30,39 @@ export default function Home() {
     alert('프롬프트가 복사되었습니다!');
   };
 
+  const handleDownload = () => {
+    if (!articleTitle || !tags || !summary || !captions || !prompts) return;
+
+    let content = `기사 제목: ${articleTitle}\n\n`;
+    
+    if (tags && tags.length > 0) {
+      content += `태그: ${tags.join(', ')}\n\n`;
+    }
+
+    content += '---'.repeat(10) + '\n\n';
+
+    summary.forEach((cutSummary, index) => {
+      content += `🎬 컷 #${index + 1}: ${cutSummary}\n`;
+      if (captions && captions[index]) {
+        content += `요약: ${captions[index]}\n`;
+      }
+      if (prompts && prompts[index]) {
+        content += `프롬프트: ${prompts[index]}\n\n`;
+      }
+    });
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const fileName = `${articleTitle.replace(/[^a-z0-9가-힣]/gi, '_')}.txt`;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -128,6 +161,14 @@ export default function Home() {
                 ))}
               </div>
             )}
+
+            <button
+              onClick={handleDownload}
+              className="w-full mb-6 px-4 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition-colors text-lg"
+            >
+              기사 내용 텍스트 파일로 다운로드
+            </button>
+
             <div className="bg-gray-100 p-3 rounded-md mb-6">
               <p className="text-sm text-gray-500 mb-2">⬇️ 전체 기사 테마 배경 이미지 프롬프트:</p>
               <p className="font-mono text-sm text-gray-700 leading-relaxed">{mainImagePrompt}</p>
