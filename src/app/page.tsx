@@ -68,7 +68,7 @@ export default function Home() {
     const fileName = `${articleTitle.replace(/[^a-z0-9가-힣]/gi, '_')}.txt`;
     link.download = fileName;
     document.body.appendChild(link);
-    link.click();
+    link.dispatchEvent(new MouseEvent('click'));
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
