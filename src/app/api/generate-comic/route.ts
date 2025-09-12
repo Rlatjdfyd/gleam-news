@@ -7,7 +7,7 @@ function isValidUrl(string: string) {
   try {
     new URL(string);
     return true;
-  } catch (e) {
+  } catch { // Removed 'e'
     return false;
   }
 }
@@ -40,7 +40,7 @@ async function generateTextData(apiKey: string, article: string, imageStyle: str
   try {
     // Attempt to parse directly first
     parsedJson = JSON.parse(jsonString);
-  } catch (e) {
+  } catch { // Removed 'e'
     // If direct parsing fails, try to extract JSON using regex
     const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
     if (!jsonMatch || !jsonMatch[0]) {
@@ -49,7 +49,7 @@ async function generateTextData(apiKey: string, article: string, imageStyle: str
     const cleanedJsonString = jsonMatch[0];
     try {
       parsedJson = JSON.parse(cleanedJsonString);
-    } catch (e2) {
+    } catch { // Removed 'e2'
       throw new Error('추출된 JSON 문자열을 파싱할 수 없습니다. 추출된 문자열: ' + cleanedJsonString + ' 원본 응답: ' + jsonString);
     }
   }

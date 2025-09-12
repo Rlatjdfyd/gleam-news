@@ -141,7 +141,7 @@ export default function Home() {
                 <div key={index} className={`border-2 border-gray-200 p-4 rounded-lg shadow aspect-square flex flex-col justify-center items-center ${PANEL_COLORS[index % PANEL_COLORS.length]}`}>
                   <p className="text-sm font-medium text-gray-500 mb-2">컷 #{index + 1}</p>
                   <h3 className="text-xl font-bold text-gray-800 text-center mb-3">{cutSummary}</h3>
-                  {captions && <p className="text-md text-gray-700 text-center italic">"{captions[index]}"</p>}
+                  {captions && <p className="text-md text-gray-700 text-center italic">&quot;{captions[index]}&quot;</p>}
                   {prompts && <p className="text-xs text-gray-500 text-center mt-2 break-all">프롬프트: {prompts[index]}</p>}
                 </div>
               ))}
