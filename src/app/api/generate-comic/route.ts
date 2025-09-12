@@ -1,6 +1,7 @@
 // app/api/generate-comic/route.ts
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getComicGeneratorPrompt } from '../../../prompts/comicGeneratorPrompt'; // Corrected path
 
 function isValidUrl(string: string) {
   try {
@@ -28,47 +29,31 @@ async function generateTextData(apiKey: string, article: string, imageStyle: str
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-  const metaPrompt = `
-    You are an AI assistant for an app called "Gleam News". Your task is to create a scenario and prompts for a 4-cut comic based on the provided news article.
-    Ensure all generated content (summary, captions, and prompts) strictly adheres to safety policies, avoiding any harmful, hateful, or inappropriate content.
-    Avoid using specific personal names or exact geographical locations in the summary, captions, and prompts. Instead, use general terms like 'a person,' 'the city,' 'the region,' or 'the individual' where appropriate.
-
-    Perform the following tasks:
-    0.  **Generate Article Title**: Create a concise, single-line, catchy title for the 4-cut comic based on the provided news article. This MUST be in Korean. Do NOT use English for the article title.
-    1.  **Summarize**: Create a 4-point summary of the article. Each point will be a title for a comic panel and must be concise, under 15 Korean characters.
-    2.  **Generate Prompts**: For each of the 4 summary points, create a detailed and visually rich prompt for an image generation AI. Based on the news article's primary geographical or cultural context, describe human characters as either 'East Asian' or 'Western' (Caucasian). The prompts should be in English. Each prompt must end with "--ar 1:1".
-
-    3.  **Generate Captions**: For each of the 4 summary points, create a detailed caption in Korean, describing the scene or event for the comic panel. Each caption should be around 50 Korean characters, providing more descriptive detail.
-    4.  **Generate Tags**: Create a list of 5 to 7 concise Korean keywords that represent the entire article's main topics.
-
-    The final output MUST be a single, valid JSON object. Do NOT include any other text or conversational elements outside of this JSON object.
-    The JSON object MUST have six keys: "articleTitle" (a string), "mainImagePrompt" (a string, should be in ${imageStyle} style), "summary" (an array of 4 Korean strings), "captions" (an array of 4 Korean strings), "prompts" (an array of 4 English strings), and "tags" (an array of Korean strings).
-    Example format:
-    {
-      "articleTitle": "기사 제목 예시",
-      "mainImagePrompt": "A background image representing the theme in ${imageStyle} style --ar 1:1",
-      "summary": ["Summary 1", "Summary 2", "Summary 3", "Summary 4"],
-      "captions": ["Caption 1", "Caption 2", "Caption 3", "Caption 4"],
-      "prompts": ["Prompt 1 --ar 1:1", "Prompt 2 --ar 1:1", "Prompt 3 --ar 1:1", "Prompt 4 --ar 1:1"],
-      "tags": ["#핵심태그1", "#핵심태그2", "#핵심태그3", "#핵심태그4", "#핵심태그5"]
-    }
-
-    Here is the article:
-    ---
-    ${article}
-    ---
-  `;
+  const metaPrompt = getComicGeneratorPrompt(imageStyle, article);
+    
 
   const result = await model.generateContent(metaPrompt);
   const response = result.response;
   const jsonString = response.text();
   
-  const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
-  if (!jsonMatch || !jsonMatch[0]) {
-    throw new Error('AI 응답에서 유효한 JSON을 찾을 수 없습니다.');
+  let parsedJson;
+  try {
+    // Attempt to parse directly first
+    parsedJson = JSON.parse(jsonString);
+  } catch (e) {
+    // If direct parsing fails, try to extract JSON using regex
+    const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+    if (!jsonMatch || !jsonMatch[0]) {
+      throw new Error('AI 응답에서 유효한 JSON을 찾을 수 없습니다. 원본 응답: ' + jsonString);
+    }
+    const cleanedJsonString = jsonMatch[0];
+    try {
+      parsedJson = JSON.parse(cleanedJsonString);
+    } catch (e2) {
+      throw new Error('추출된 JSON 문자열을 파싱할 수 없습니다. 추출된 문자열: ' + cleanedJsonString + ' 원본 응답: ' + jsonString);
+    }
   }
-  const cleanedJsonString = jsonMatch[0];
-  return JSON.parse(cleanedJsonString);
+  return parsedJson;
 }
 
 
@@ -107,21 +92,23 @@ export async function POST(request: Request) {
 
     // 2. 이미지 생성 기능은 사용하지 않고 텍스트 데이터만 반환
     const panelPrompts = textData.prompts.map((p: string) => p.replace(/--ar 1:1/g, '').trim());
-    const combinedPrompt = `A ${selectedStyle} illustration of the news article, shown in four panels in a 2x2 grid layout within one image:
-    - Panel 1: ${panelPrompts[0]}
-    - Panel 2: ${panelPrompts[1]}
-    - Panel 3: ${panelPrompts[2]}
-    - Panel 4: ${panelPrompts[3]}
-    --ar 1:1`;
+    const combinedPrompt = `A ${selectedStyle} illustration of the news article, shown in four panels in a 2x2 grid layout within one image:\n    - Panel 1: ${panelPrompts[0]}\n    - Panel 2: ${panelPrompts[1]}\n    - Panel 3: ${panelPrompts[2]}\n    - Panel 4: ${panelPrompts[3]}\n    --ar 1:1`;
+    
+    const simplePanelPrompts = textData.simplePrompts.map((p: string) => p.replace(/--ar 1:1/g, '').trim());
+    const simpleCombinedPrompt = `A ${selectedStyle} illustration of the news article, 2x2 grid:\n    - P1: ${simplePanelPrompts[0]}\n    - P2: ${simplePanelPrompts[1]}\n    - P3: ${simplePanelPrompts[2]}\n    - P4: ${simplePanelPrompts[3]}\n    --ar 1:1`;
+
     // 2. 이미지 생성 기능은 사용하지 않고 텍스트 데이터만 반환
     const finalData = {
       articleTitle: textData.articleTitle,
       summary: textData.summary,
       captions: textData.captions,
       prompts: textData.prompts,
+      simplePrompts: textData.simplePrompts, // Add this
       tags: textData.tags,
       mainImagePrompt: textData.mainImagePrompt,
+      simpleMainImagePrompt: textData.simpleMainImagePrompt, // Add this
       combinedPrompt: combinedPrompt,
+      simpleCombinedPrompt: simpleCombinedPrompt, // Add this
       originalArticleInput: originalArticleInput,
       isUrl: isUrl,
       images: [], // 이미지 생성 기능을 사용하지 않으므로 빈 배열 반환
@@ -130,8 +117,26 @@ export async function POST(request: Request) {
     return NextResponse.json(finalData);
 
   } catch (error) {
-    console.error('Error in generate-comic API:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    let errorMessage = '알 수 없는 서버 오류가 발생했습니다.';
+    let statusCode = 500;
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      // Specific error handling for known issues
+      if (errorMessage.includes('Google API key is not configured')) {
+        statusCode = 500; // Or 401 if you want to distinguish
+      } else if (errorMessage.includes('Article content is required')) {
+        statusCode = 400;
+      } else if (errorMessage.includes('URL content fetch failed')) {
+        statusCode = 500;
+      } else if (errorMessage.includes('AI 응답에서 유효한 JSON을 찾을 수 없습니다') || errorMessage.includes('추출된 JSON 문자열을 파싱할 수 없습니다')) {
+        statusCode = 500; // AI response parsing error
+      }
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+
+    console.error('API Error in /api/generate-comic:', error); // Log full error for debugging
+    return NextResponse.json({ error: `서버 오류: ${errorMessage}` }, { status: statusCode });
   }
 }

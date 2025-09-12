@@ -1,129 +1,38 @@
 'use client';
 
-import { useState } from 'react';
+import { IMAGE_STYLES, PANEL_COLORS } from '../constants';
+
+import { useComicGenerator } from '../hooks/useComicGenerator';
 
 export default function Home() {
-  const IMAGE_STYLES = [
-    { name: '미니어처 디오라마 스타일', value: 'tilt-shift photography, miniature effect, diorama style' },
-    { name: '한국 수묵화 스타일', value: 'traditional Korean ink wash painting style, serene and artistic' },
-    { name: '애니메이션 스타일', value: 'anime style' },
-    { name: '픽셀 아트 스타일', value: 'pixel art style' },
-    { name: '수채화 스타일', value: 'watercolor painting style' },
-  ];
+  const {
+    article,
+    setArticle,
+    selectedStyle,
+    setSelectedStyle,
+    loading,
+    showStyleSelector,
+    setShowStyleSelector,
+    summary,
+    prompts,
+    simplePrompts,
+    captions,
+    articleTitle,
+    tags,
+    mainImagePrompt,
+    simpleMainImagePrompt,
+    combinedPromptText,
+    simpleCombinedPrompt,
+    originalArticleInput,
+    isUrl,
+    handleSubmit,
+    handleClear,
+    handleDownload,
+    error, // Destructure error
+  } = useComicGenerator();
+  
 
-  const [article, setArticle] = useState('');
-  const [selectedStyle, setSelectedStyle] = useState(IMAGE_STYLES[0].value);
-  const [loading, setLoading] = useState(false);
-  const [showStyleSelector, setShowStyleSelector] = useState(false); // Add this line
-  const [summary, setSummary] = useState<string[] | null>(null);
-  const [prompts, setPrompts] = useState<string[] | null>(null); // Keep for download
-  const [captions, setCaptions] = useState<string[] | null>(null);
-  const [articleTitle, setArticleTitle] = useState<string | null>(null);
-  const [tags, setTags] = useState<string[] | null>(null);
-  const [mainImagePrompt, setMainImagePrompt] = useState<string | null>(null); // Re-add this line
-  const [combinedPromptText, setCombinedPromptText] = useState<string | null>(null); // Add this line
-  const [originalArticleInput, setOriginalArticleInput] = useState<string | null>(null); // Add this line
-  const [isUrl, setIsUrl] = useState<boolean>(false); // Add this line
-
-  const handleDownload = () => {
-    if (!articleTitle || !tags || !summary || !captions || !prompts || !mainImagePrompt || !combinedPromptText || !originalArticleInput) return; // Add originalArticleInput to check
-
-    let content = '';
-
-    if (isUrl) {
-      content += `기사 출처 URL: ${originalArticleInput}\n\n`;
-    } else {
-      content += `원본 기사 내용:\n${originalArticleInput}\n\n`;
-    }
-
-    content += `기사 제목: ${articleTitle}\n\n`;
-    
-    if (tags && tags.length > 0) {
-      content += `태그: ${tags.join(', ')}\n\n`;
-    }
-
-    // Re-add mainImagePrompt here
-    content += `메인 이미지 프롬프트: ${mainImagePrompt}\n\n`;
-
-    // Add combinedPromptText here
-    content += `통합 패널 프롬프트: ${combinedPromptText}\n\n`;
-
-    content += '---'.repeat(10) + '\n\n';
-
-    summary.forEach((cutSummary, index) => {
-      content += `🎬 컷 #${index + 1}: ${cutSummary}\n`;
-      if (captions && captions[index]) {
-        content += `요약: ${captions[index]}\n`;
-      }
-    });
-
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = url;
-    const fileName = `${articleTitle.replace(/[^a-z0-9가-힣]/gi, '_')}.txt`;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click(); // Use link.click() for PC
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleClear = () => {
-    setArticle('');
-    setSelectedStyle(IMAGE_STYLES[0].value); // Reset to default style
-    setLoading(false);
-    setSummary(null);
-    setPrompts(null);
-    setCaptions(null);
-    setArticleTitle(null);
-    setTags(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setSummary(null);
-    setPrompts(null);
-    setCaptions(null);
-    setArticleTitle(null);
-    setTags(null);
-
-    try {
-      const response = await fetch('/api/generate-comic', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ article, selectedStyle }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || '알 수 없는 에러가 발생했습니다.');
-      }
-
-      setSummary(data.summary);
-      setCaptions(data.captions);
-      setPrompts(data.prompts);
-      setArticleTitle(data.articleTitle);
-      setTags(data.tags);
-      setMainImagePrompt(data.mainImagePrompt); // Re-add this line
-      setCombinedPromptText(data.combinedPrompt); // Add this line
-      setOriginalArticleInput(data.originalArticleInput); // Add this line
-      setIsUrl(data.isUrl); // Add this line
-
-    } catch (error) {
-      console.error(error);
-      if (error instanceof Error) {
-        alert(`오류 발생: ${error.message}`);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
   return (
     <main className="flex min-h-screen flex-col items-center p-6 sm:p-12 bg-gray-50">
@@ -134,9 +43,8 @@ export default function Home() {
         </header>
 
         <form onSubmit={handleSubmit} className="mb-8">
-          {/* Toggle button for style selection */}
           <button
-            type="button" // Important: not submit
+            type="button"
             onClick={() => setShowStyleSelector(!showStyleSelector)}
             className="w-full mt-4 px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-300 transition-colors text-base"
           >
@@ -144,9 +52,8 @@ export default function Home() {
           </button>
 
           {showStyleSelector && (
-            <> {/* Added fragment */}
-              <div className="mb-4 mt-4"> {/* Added mt-4 for spacing */}
-                {/* Removed label for image style selection */}
+            <>
+              <div className="mb-4 mt-4">
                 <select
                   id="image-style"
                   value={selectedStyle}
@@ -160,7 +67,7 @@ export default function Home() {
                   ))}
                 </select>
               </div>
-            </> // Added fragment
+            </>
           )}
           <textarea
             value={article}
@@ -174,9 +81,16 @@ export default function Home() {
             disabled={loading || !article}
             className="w-full mt-4 px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors text-lg"
           >
-            {loading ? 'AI가 만화를 생성하는 중...' : '글램뉴스 생성하기'}
+            {loading ? 'AI가 만화를 생성하는 중...' : '글림뉴스 생성하기'}
           </button>
         </form>
+
+        {error && (
+          <div className="text-center p-4 mb-8 bg-red-100 border border-red-400 text-red-700 rounded-lg" role="alert">
+            <p className="font-bold">오류 발생:</p>
+            <p>{error}</p>
+          </div>
+        )}
 
         {loading && (
           <div className="text-center p-8">
@@ -187,6 +101,7 @@ export default function Home() {
 
         {summary && articleTitle && (
           <section>
+            {/* ... other elements ... */}
             <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-center">{articleTitle}</h2>
             {tags && tags.length > 0 && (
               <div className="flex flex-wrap justify-center gap-2 mb-4">
@@ -198,27 +113,39 @@ export default function Home() {
               </div>
             )}
 
+            {mainImagePrompt && (
+              <div className="mb-4 p-3 bg-gray-100 rounded-lg shadow-sm">
+                <p className="text-sm font-semibold text-gray-700 mb-1">메인 이미지 프롬프트:</p>
+                <p className="text-xs text-gray-600 break-all">{mainImagePrompt}</p>
+                {simpleMainImagePrompt && (
+                  <p className="text-xs text-gray-500 mt-1 break-all">간결한 프롬프트: {simpleMainImagePrompt}</p>
+                )}
+              </div>
+            )}
+
             {prompts && (
               <button
-                onClick={handleDownload}
+                onClick={() => handleDownload({
+                  articleTitle, tags, summary, captions, prompts,
+                  mainImagePrompt, combinedPromptText, originalArticleInput,
+                  simplePrompts, simpleMainImagePrompt, simpleCombinedPrompt, isUrl
+                })}
                 className="w-full mb-6 px-4 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition-colors text-lg"
               >
                 프롬프트 다운로드
               </button>
             )}
 
-            {/* No image display */}
-
-            {/* Display summary and captions as a list */}
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {summary.map((cutSummary, index) => (
-                <div key={index} className="border-2 border-gray-200 p-4 rounded-lg bg-white shadow">
-                  <h3 className="text-lg font-semibold mb-2 text-gray-800">• 컷 #{index + 1}: {cutSummary}</h3>
-                  {captions && <p className="text-md text-gray-700 mt-3">{captions[index]}</p>}
+                <div key={index} className={`border-2 border-gray-200 p-4 rounded-lg shadow aspect-square flex flex-col justify-center items-center ${PANEL_COLORS[index % PANEL_COLORS.length]}`}>
+                  <p className="text-sm font-medium text-gray-500 mb-2">컷 #{index + 1}</p>
+                  <h3 className="text-xl font-bold text-gray-800 text-center mb-3">{cutSummary}</h3>
+                  {captions && <p className="text-md text-gray-700 text-center italic">"{captions[index]}"</p>}
+                  {prompts && <p className="text-xs text-gray-500 text-center mt-2 break-all">프롬프트: {prompts[index]}</p>}
                 </div>
               ))}
             </div>
-            {/* Add the new Clear button here */}
             <button
               onClick={handleClear}
               className="w-full mt-6 px-4 py-3 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors text-lg"
