@@ -31,7 +31,7 @@ export default function Home() {
     error,
   } = useComicGenerator();
 
-  const [activeTone, setActiveTone] = useState<'expository' | 'interrogative'>('expository');
+  const [activeTone, setActiveTone] = useState<'expository' | 'interrogative' | 'summary'>('expository');
 
   return (
     <main className="flex min-h-screen flex-col items-center p-6 sm:p-12 bg-gray-50">
@@ -131,6 +131,16 @@ export default function Home() {
                 }`}
               >
                 ? 질문형
+              </button>
+              <button
+                onClick={() => setActiveTone('summary')}
+                className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors ${
+                  activeTone === 'summary'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                요약형
               </button>
             </div>
 

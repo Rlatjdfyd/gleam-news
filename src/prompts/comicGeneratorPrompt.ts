@@ -18,6 +18,7 @@ export function getComicGeneratorPrompt(imageStyle: string, article: string): st
     5.  **Generate Captions**: For each of the 4 summary points, create two distinct captions in Korean: an 'Expository Caption' and an 'Interrogative Caption'.
         -   **Expository Caption**: A detailed caption describing the scene or event. It should be around 50 Korean characters.
         -   **Interrogative Caption**: A caption that asks a question related to the scene or event, sparking curiosity. It should also be around 50 Korean characters.
+        -   **Summary Caption**: 만화 패널에 묘사된 핵심적인 행동이나 사건을 간결하게 요약하는 사실적인 한국어 캡션입니다. 패널의 제목과는 구별되어야 하며, 약 25자 내외로 작성합니다.
     6.  **Generate Tags**: Create a list of 5 to 7 concise Korean keywords related to the article's main topics.
     Your final output must be a single JSON object. Do not include any text outside of the JSON object.
     The JSON object should have the following structure:
@@ -32,7 +33,8 @@ export function getComicGeneratorPrompt(imageStyle: string, article: string): st
           "simple_prompt": "...",
           "captions": {
             "expository": "...",
-            "interrogative": "..."
+            "interrogative": "...",
+            "summary": "..."
           }
         },
         {
@@ -41,7 +43,8 @@ export function getComicGeneratorPrompt(imageStyle: string, article: string): st
           "simple_prompt": "...",
           "captions": {
             "expository": "...",
-            "interrogative": "..."
+            "interrogative": "...",
+            "summary": "..."
           }
         },
         {
@@ -50,7 +53,8 @@ export function getComicGeneratorPrompt(imageStyle: string, article: string): st
           "simple_prompt": "...",
           "captions": {
             "expository": "...",
-            "interrogative": "..."
+            "interrogative": "...",
+            "summary": "..."
           }
         },
         {
@@ -59,7 +63,8 @@ export function getComicGeneratorPrompt(imageStyle: string, article: string): st
           "simple_prompt": "...",
           "captions": {
             "expository": "...",
-            "interrogative": "..."
+            "interrogative": "...",
+            "summary": "..."
           }
         }
       ],
