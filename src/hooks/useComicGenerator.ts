@@ -162,8 +162,6 @@ export function useComicGenerator(): ComicGeneratorResult {
     setTags(null);
     setMainImagePrompt(null);
     setSimpleMainImagePrompt(null);
-    setCombinedPromptText(null);
-    setSimpleCombinedPrompt(null);
     setOriginalArticleInput(null); // Clear original article input before new submission
     setIsUrl(false); // Clear URL status before new submission
     setError(null); // Clear error on new submission
@@ -192,8 +190,6 @@ export function useComicGenerator(): ComicGeneratorResult {
       setTags(data.tags);
       setMainImagePrompt(data.mainImagePrompt);
       setSimpleMainImagePrompt(data.simpleMainImagePrompt);
-      setCombinedPromptText(data.combinedPrompt);
-      setSimpleCombinedPrompt(data.simpleCombinedPrompt);
       setOriginalArticleInput(data.originalArticleInput);
       setIsUrl(data.isUrl);
 
