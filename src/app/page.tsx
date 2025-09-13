@@ -23,8 +23,6 @@ export default function Home() {
     tags,
     mainImagePrompt,
     simpleMainImagePrompt,
-    combinedPromptText,
-    simpleCombinedPrompt,
     originalArticleInput,
     isUrl,
     handleSubmit,

@@ -25,6 +25,16 @@ async function fetchUrlContent(url: string): Promise<string> {
   }
 }
 
+interface Panel {
+  summary: string;
+  prompt: string;
+  simple_prompt: string;
+  captions: {
+    expository: string;
+    interrogative: string;
+  };
+}
+
 async function generateTextData(apiKey: string, article: string, imageStyle: string) {
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
@@ -93,10 +103,10 @@ export async function POST(request: Request) {
     // 2. 텍스트 데이터 재구성
     const { title, main_prompt, simple_main_prompt, panels, tags } = textData;
 
-    const summary = panels.map((p: any) => p.summary);
-    const prompts = panels.map((p: any) => p.prompt);
-    const simplePrompts = panels.map((p: any) => p.simple_prompt);
-    const captions = panels.map((p: any) => p.captions); // This will be an array of {expository, interrogative} objects
+    const summary = panels.map((p: Panel) => p.summary);
+    const prompts = panels.map((p: Panel) => p.prompt);
+    const simplePrompts = panels.map((p: Panel) => p.simple_prompt);
+    const captions = panels.map((p: Panel) => p.captions); // This will be an array of {expository, interrogative} objects
 
     const finalData = {
       articleTitle: title,

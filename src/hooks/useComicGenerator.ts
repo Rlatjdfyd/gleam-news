@@ -15,11 +15,9 @@ interface DownloadData {
   captions: PanelCaptions[] | null;
   prompts: string[] | null;
   mainImagePrompt: string | null;
-  combinedPromptText: string | null;
   originalArticleInput: string | null;
   simplePrompts: string[] | null;
   simpleMainImagePrompt: string | null;
-  simpleCombinedPrompt: string | null;
   isUrl: boolean;
 }
 
@@ -39,13 +37,11 @@ interface ComicGeneratorResult {
   tags: string[] | null;
   mainImagePrompt: string | null;
   simpleMainImagePrompt: string | null;
-  combinedPromptText: string | null;
-  simpleCombinedPrompt: string | null;
   originalArticleInput: string | null;
   isUrl: boolean;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   handleClear: () => void;
-  handleDownload: (data: DownloadData) => void;
+  handleDownload: (data: Omit<DownloadData, 'combinedPromptText' | 'simpleCombinedPrompt'>) => void;
   error: string | null;
 }
 
@@ -62,8 +58,6 @@ export function useComicGenerator(): ComicGeneratorResult {
   const [tags, setTags] = useState<string[] | null>(null);
   const [mainImagePrompt, setMainImagePrompt] = useState<string | null>(null);
   const [simpleMainImagePrompt, setSimpleMainImagePrompt] = useState<string | null>(null);
-  const [combinedPromptText, setCombinedPromptText] = useState<string | null>(null);
-  const [simpleCombinedPrompt, setSimpleCombinedPrompt] = useState<string | null>(null);
   const [originalArticleInput, setOriginalArticleInput] = useState<string | null>(null);
   const [isUrl, setIsUrl] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -152,8 +146,6 @@ export function useComicGenerator(): ComicGeneratorResult {
     setTags(null);
     setMainImagePrompt(null);
     setSimpleMainImagePrompt(null);
-    setCombinedPromptText(null);
-    setSimpleCombinedPrompt(null);
     setOriginalArticleInput(null); // Clear original article input as well
     setIsUrl(false); // Clear URL status
     setError(null); // Clear error on clear
@@ -233,8 +225,6 @@ export function useComicGenerator(): ComicGeneratorResult {
     tags,
     mainImagePrompt,
     simpleMainImagePrompt,
-    combinedPromptText,
-    simpleCombinedPrompt,
     originalArticleInput,
     isUrl,
     handleSubmit,
