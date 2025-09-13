@@ -3,11 +3,16 @@
 import { useState } from 'react';
 import { IMAGE_STYLES } from '../constants'; // Assuming IMAGE_STYLES is needed here for initial state
 
+interface PanelCaptions {
+  expository: string;
+  interrogative: string;
+}
+
 interface DownloadData {
   articleTitle: string | null;
   tags: string[] | null;
   summary: string[] | null;
-  captions: string[] | null;
+  captions: PanelCaptions[] | null;
   prompts: string[] | null;
   mainImagePrompt: string | null;
   combinedPromptText: string | null;
@@ -29,7 +34,7 @@ interface ComicGeneratorResult {
   summary: string[] | null;
   prompts: string[] | null;
   simplePrompts: string[] | null;
-  captions: string[] | null;
+  captions: PanelCaptions[] | null;
   articleTitle: string | null;
   tags: string[] | null;
   mainImagePrompt: string | null;
@@ -40,8 +45,8 @@ interface ComicGeneratorResult {
   isUrl: boolean;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   handleClear: () => void;
-  handleDownload: (data: DownloadData) => void; // Updated signature
-  error: string | null; // Added error state
+  handleDownload: (data: DownloadData) => void;
+  error: string | null;
 }
 
 export function useComicGenerator(): ComicGeneratorResult {
@@ -52,7 +57,7 @@ export function useComicGenerator(): ComicGeneratorResult {
   const [summary, setSummary] = useState<string[] | null>(null);
   const [prompts, setPrompts] = useState<string[] | null>(null);
   const [simplePrompts, setSimplePrompts] = useState<string[] | null>(null);
-  const [captions, setCaptions] = useState<string[] | null>(null);
+  const [captions, setCaptions] = useState<PanelCaptions[] | null>(null);
   const [articleTitle, setArticleTitle] = useState<string | null>(null);
   const [tags, setTags] = useState<string[] | null>(null);
   const [mainImagePrompt, setMainImagePrompt] = useState<string | null>(null);
@@ -61,17 +66,17 @@ export function useComicGenerator(): ComicGeneratorResult {
   const [simpleCombinedPrompt, setSimpleCombinedPrompt] = useState<string | null>(null);
   const [originalArticleInput, setOriginalArticleInput] = useState<string | null>(null);
   const [isUrl, setIsUrl] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null); // New error state
+  const [error, setError] = useState<string | null>(null);
 
-  const handleDownload = (data: DownloadData) => { // Updated signature
+  const handleDownload = (data: Omit<DownloadData, 'combinedPromptText' | 'simpleCombinedPrompt'>) => { // Updated signature
     console.log('handleDownload: Function called.');
     const {
       articleTitle, tags, summary, captions, prompts,
-      mainImagePrompt, combinedPromptText, originalArticleInput,
-      simplePrompts, simpleMainImagePrompt, simpleCombinedPrompt, isUrl
+      mainImagePrompt, originalArticleInput,
+      simplePrompts, simpleMainImagePrompt, isUrl
     } = data; // Destructure data object
 
-    if (!articleTitle || !tags || !summary || !captions || !prompts || !mainImagePrompt || !combinedPromptText || !originalArticleInput || !simplePrompts || !simpleMainImagePrompt || !simpleCombinedPrompt) {
+    if (!articleTitle || !tags || !summary || !captions || !prompts || !mainImagePrompt || !originalArticleInput || !simplePrompts || !simpleMainImagePrompt) {
       console.log('handleDownload: Missing data, returning.');
       return;
     }
@@ -101,23 +106,20 @@ export function useComicGenerator(): ComicGeneratorResult {
     // Individual Panel Prompts
     summary.forEach((cutSummary, index) => { // Use destructured summary
       const panelTitle = cutSummary; // Assuming cutSummary is the panel title
-      const panelSummary = captions && captions[index] ? captions[index] : ''; // Use destructured captions
+      const expositoryCaption = captions && captions[index] ? captions[index].expository : '';
+      const interrogativeCaption = captions && captions[index] ? captions[index].interrogative : '';
       const panelPrompt = prompts && prompts[index] ? prompts[index] : ''; // Use destructured prompts
       const simplePanelPrompt = simplePrompts && simplePrompts[index] ? simplePrompts[index] : ''; // Use destructured simplePrompts
 
-      // User requested: 컷X(제목,요약,프롬프트)
-      content += `### 컷${index + 1}(제목: ${panelTitle}, 요약: ${panelSummary}, 프롬프트: ${panelPrompt})\n`;
+      content += `### 컷${index + 1} (제목: ${panelTitle})\n`;
+      content += `- 설명: ${expositoryCaption}\n`;
+      content += `- 질문: ${interrogativeCaption}\n`;
+      content += `- 프롬프트: ${panelPrompt}\n`;
       if (simplePanelPrompt) {
         content += `- 간결한 프롬프트: ${simplePanelPrompt}\n`;
       }
       content += `\n`;
     });
-
-    content += `---\n\n`; // Separator
-
-    // Combined Prompt (at the very end)
-    content += `### 간결한 통합 프롬프트: ${simpleCombinedPrompt}\n`; // Use destructured simpleCombinedPrompt
-    content += `### 통합 패널 프롬프트: ${combinedPromptText}\n`; // Use destructured combinedPromptText
 
     console.log('handleDownload: Content generated.');
     const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });

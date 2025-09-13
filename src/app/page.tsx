@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import { IMAGE_STYLES, PANEL_COLORS } from '../constants';
 
 import { useComicGenerator } from '../hooks/useComicGenerator';
@@ -28,18 +30,17 @@ export default function Home() {
     handleSubmit,
     handleClear,
     handleDownload,
-    error, // Destructure error
+    error,
   } = useComicGenerator();
-  
 
-  
+  const [activeTone, setActiveTone] = useState<'expository' | 'interrogative'>('expository');
 
   return (
     <main className="flex min-h-screen flex-col items-center p-6 sm:p-12 bg-gray-50">
       <div className="w-full max-w-3xl">
         <header className="text-center mb-8">
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-2 font-poppins">Gleam News</h1>
-          <p className="text-md sm:text-lg text-gray-600">AI 프롬프트로 만나는 네컷 뉴스</p>
+          <p className="text-md sm:text-lg text-gray-600">AI 프롬프트로 만나는 AI 뉴스 이미지</p>
         </header>
 
         <form onSubmit={handleSubmit} className="mb-8">
@@ -81,7 +82,7 @@ export default function Home() {
             disabled={loading || !article}
             className="w-full mt-4 px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors text-lg"
           >
-            {loading ? 'AI가 만화를 생성하는 중...' : '글림뉴스 생성하기'}
+            {loading ? 'AI가 이미지를 생성하는 중...' : '글림뉴스 생성하기'}
           </button>
         </form>
 
@@ -101,17 +102,39 @@ export default function Home() {
 
         {summary && articleTitle && (
           <section>
-            {/* ... other elements ... */}
             <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-center">{articleTitle}</h2>
             {tags && tags.length > 0 && (
               <div className="flex flex-wrap justify-center gap-2 mb-4">
                 {tags.map((tag, index) => (
-                  <span key={index} className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm">
+                  <span key={index} className={`px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm`}>
                     {tag}
                   </span>
                 ))}
               </div>
             )}
+
+            <div className="flex justify-center items-center gap-2 mb-4">
+              <button
+                onClick={() => setActiveTone('expository')}
+                className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors ${
+                  activeTone === 'expository'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                A 설명형
+              </button>
+              <button
+                onClick={() => setActiveTone('interrogative')}
+                className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors ${
+                  activeTone === 'interrogative'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                ? 질문형
+              </button>
+            </div>
 
             {mainImagePrompt && (
               <div className="mb-4 p-3 bg-gray-100 rounded-lg shadow-sm">
@@ -127,8 +150,8 @@ export default function Home() {
               <button
                 onClick={() => handleDownload({
                   articleTitle, tags, summary, captions, prompts,
-                  mainImagePrompt, combinedPromptText, originalArticleInput,
-                  simplePrompts, simpleMainImagePrompt, simpleCombinedPrompt, isUrl
+                  mainImagePrompt, originalArticleInput,
+                  simplePrompts, simpleMainImagePrompt, isUrl
                 })}
                 className="w-full mb-6 px-4 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition-colors text-lg"
               >
@@ -141,7 +164,11 @@ export default function Home() {
                 <div key={index} className={`border-2 border-gray-200 p-4 rounded-lg shadow aspect-square flex flex-col justify-center items-center ${PANEL_COLORS[index % PANEL_COLORS.length]}`}>
                   <p className="text-sm font-medium text-gray-500 mb-2">컷 #{index + 1}</p>
                   <h3 className="text-xl font-bold text-gray-800 text-center mb-3">{cutSummary}</h3>
-                  {captions && <p className="text-md text-gray-700 text-center italic">&quot;{captions[index]}&quot;</p>}
+                  {captions && captions[index] && (
+                    <p className="text-md text-gray-700 text-center italic">
+                      &quot;{captions[index][activeTone]}&quot;
+                    </p>
+                  )}
                   {prompts && <p className="text-xs text-gray-500 text-center mt-2 break-all">프롬프트: {prompts[index]}</p>}
                 </div>
               ))}

@@ -90,25 +90,23 @@ export async function POST(request: Request) {
     // 1. 텍스트 데이터 (프롬프트 포함) 생성
     const textData = await generateTextData(apiKey, processedArticle, selectedStyle);
 
-    // 2. 이미지 생성 기능은 사용하지 않고 텍스트 데이터만 반환
-    const panelPrompts = textData.prompts.map((p: string) => p.replace(/--ar 1:1/g, '').trim());
-    const combinedPrompt = `A ${selectedStyle} illustration of the news article, shown in four panels in a 2x2 grid layout within one image:\n    - Panel 1: ${panelPrompts[0]}\n    - Panel 2: ${panelPrompts[1]}\n    - Panel 3: ${panelPrompts[2]}\n    - Panel 4: ${panelPrompts[3]}\n    --ar 1:1`;
-    
-    const simplePanelPrompts = textData.simplePrompts.map((p: string) => p.replace(/--ar 1:1/g, '').trim());
-    const simpleCombinedPrompt = `A ${selectedStyle} illustration of the news article, 2x2 grid:\n    - P1: ${simplePanelPrompts[0]}\n    - P2: ${simplePanelPrompts[1]}\n    - P3: ${simplePanelPrompts[2]}\n    - P4: ${simplePanelPrompts[3]}\n    --ar 1:1`;
+    // 2. 텍스트 데이터 재구성
+    const { title, main_prompt, simple_main_prompt, panels, tags } = textData;
 
-    // 2. 이미지 생성 기능은 사용하지 않고 텍스트 데이터만 반환
+    const summary = panels.map((p: any) => p.summary);
+    const prompts = panels.map((p: any) => p.prompt);
+    const simplePrompts = panels.map((p: any) => p.simple_prompt);
+    const captions = panels.map((p: any) => p.captions); // This will be an array of {expository, interrogative} objects
+
     const finalData = {
-      articleTitle: textData.articleTitle,
-      summary: textData.summary,
-      captions: textData.captions,
-      prompts: textData.prompts,
-      simplePrompts: textData.simplePrompts, // Add this
-      tags: textData.tags,
-      mainImagePrompt: textData.mainImagePrompt,
-      simpleMainImagePrompt: textData.simpleMainImagePrompt, // Add this
-      combinedPrompt: combinedPrompt,
-      simpleCombinedPrompt: simpleCombinedPrompt, // Add this
+      articleTitle: title,
+      summary: summary,
+      captions: captions, // Array of {expository, interrogative} objects
+      prompts: prompts,
+      simplePrompts: simplePrompts,
+      tags: tags,
+      mainImagePrompt: main_prompt, // Use AI-generated main prompt
+      simpleMainImagePrompt: simple_main_prompt, // Use AI-generated simple main prompt
       originalArticleInput: originalArticleInput,
       isUrl: isUrl,
       images: [], // 이미지 생성 기능을 사용하지 않으므로 빈 배열 반환
