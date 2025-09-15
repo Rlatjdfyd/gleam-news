@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { IMAGE_STYLES } from '../constants'; // Assuming IMAGE_STYLES is needed here for initial state
+import { IMAGE_STYLES, ASPECT_RATIOS } from '../constants';
 
 interface PanelCaptions {
   expository: string;
@@ -27,6 +27,8 @@ interface ComicGeneratorResult {
   setArticle: (article: string) => void;
   selectedStyle: string;
   setSelectedStyle: (style: string) => void;
+  selectedAspectRatio: string;
+  setSelectedAspectRatio: (ratio: string) => void;
   loading: boolean;
   showStyleSelector: boolean;
   setShowStyleSelector: (show: boolean) => void;
@@ -49,6 +51,7 @@ interface ComicGeneratorResult {
 export function useComicGenerator(): ComicGeneratorResult {
   const [article, setArticle] = useState('');
   const [selectedStyle, setSelectedStyle] = useState(IMAGE_STYLES[0].value);
+  const [selectedAspectRatio, setSelectedAspectRatio] = useState(ASPECT_RATIOS[0].value);
   const [loading, setLoading] = useState(false);
   const [showStyleSelector, setShowStyleSelector] = useState(false);
   const [summary, setSummary] = useState<string[] | null>(null);
@@ -63,13 +66,13 @@ export function useComicGenerator(): ComicGeneratorResult {
   const [isUrl, setIsUrl] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleDownload = (data: Omit<DownloadData, 'combinedPromptText' | 'simpleCombinedPrompt'>) => { // Updated signature
+  const handleDownload = (data: Omit<DownloadData, 'combinedPromptText' | 'simpleCombinedPrompt'>) => {
     console.log('handleDownload: Function called.');
     const {
       articleTitle, tags, summary, captions, prompts,
       mainImagePrompt, originalArticleInput,
       simplePrompts, simpleMainImagePrompt, isUrl
-    } = data; // Destructure data object
+    } = data;
 
     if (!articleTitle || !tags || !summary || !captions || !prompts || !mainImagePrompt || !originalArticleInput || !simplePrompts || !simpleMainImagePrompt) {
       console.log('handleDownload: Missing data, returning.');
@@ -79,40 +82,35 @@ export function useComicGenerator(): ComicGeneratorResult {
 
     let content = '';
 
-    // Article Info
-    if (isUrl) { // Use destructured isUrl
-      content += `## 기사 출처 URL: ${originalArticleInput}\n\n`; // Use destructured originalArticleInput
+    if (isUrl) {
+      content += `## 기사 출처 URL: ${originalArticleInput}\n\n`;
     } else {
-      content += `## 원본 기사 내용:\n${originalArticleInput}\n\n`; // Use destructured originalArticleInput
+      content += `## 원본 기사 내용:\n${originalArticleInput}\n\n`;
     }
-    content += `## 기사 제목: ${articleTitle}\n\n`; // Use destructured articleTitle
-    if (tags && tags.length > 0) { // Use destructured tags
+    content += `## 기사 제목: ${articleTitle}\n\n`;
+    if (tags && tags.length > 0) {
       content += `### 태그: ${tags.join(', ')}\n\n`;
     }
 
-    content += `---\n\n`; // Separator
+    content += `---\n\n`;
 
-    // Main Image Prompt (assuming "메인 제목 프롬프트" means "메인 이미지 프롬프트")
-    content += `### 메인 이미지 프롬프트: ${mainImagePrompt}\n`; // Use destructured mainImagePrompt
-    content += `### 간결한 메인 이미지 프롬프트: ${simpleMainImagePrompt}\n\n`; // Use destructured simpleMainImagePrompt
+    content += `### 메인 이미지 프롬프트: ${mainImagePrompt}\n`;
+    content += `### 간결한 메인 이미지 프롬프트: ${simpleMainImagePrompt}\n\n`;
 
-    content += `---\n\n`; // Separator
+    content += `---\n\n`;
 
-    // Individual Panel Prompts
-    summary.forEach((cutSummary, index) => { // Use destructured summary
-      const panelTitle = cutSummary; // Assuming cutSummary is the panel title
+    summary.forEach((cutSummary, index) => {
+      const panelTitle = cutSummary;
       const expositoryCaption = captions && captions[index] ? captions[index].expository : '';
       const interrogativeCaption = captions && captions[index] ? captions[index].interrogative : '';
       const summaryCaption = captions && captions[index] ? captions[index].summary : '';
-      const panelPrompt = prompts && prompts[index] ? prompts[index] : ''; // Use destructured prompts
-      const simplePanelPrompt = simplePrompts && simplePrompts[index] ? simplePrompts[index] : ''; // Use destructured simplePrompts
+      const panelPrompt = prompts && prompts[index] ? prompts[index] : '';
+      const simplePanelPrompt = simplePrompts && simplePrompts[index] ? simplePrompts[index] : '';
 
       content += `### 컷${index + 1} (제목: ${panelTitle})\n`;
       content += `- 설명: ${expositoryCaption}\n`;
-      content += `- 질문: ${interrogativeCaption}
-`;
-      content += `- 요약: ${summaryCaption}
-`;
+      content += `- 질문: ${interrogativeCaption}\n`;
+      content += `- 요약: ${summaryCaption}\n`;
       content += `- 프롬프트: ${panelPrompt}\n`;
       if (simplePanelPrompt) {
         content += `- 간결한 프롬프트: ${simplePanelPrompt}\n`;
@@ -128,7 +126,7 @@ export function useComicGenerator(): ComicGeneratorResult {
 
     const link = document.createElement('a');
     link.href = url;
-    const fileName = `${articleTitle.replace(/[^a-z0-9가-힣]/gi, '_')}.txt`; // Use destructured articleTitle
+    const fileName = `${articleTitle.replace(/[^a-z0-9가-힣]/gi, '_')}.txt`;
     link.download = fileName;
     document.body.appendChild(link);
     console.log('handleDownload: Link appended.');
@@ -142,6 +140,7 @@ export function useComicGenerator(): ComicGeneratorResult {
   const handleClear = () => {
     setArticle('');
     setSelectedStyle(IMAGE_STYLES[0].value);
+    setSelectedAspectRatio(ASPECT_RATIOS[0].value);
     setLoading(false);
     setSummary(null);
     setPrompts(null);
@@ -151,9 +150,9 @@ export function useComicGenerator(): ComicGeneratorResult {
     setTags(null);
     setMainImagePrompt(null);
     setSimpleMainImagePrompt(null);
-    setOriginalArticleInput(null); // Clear original article input as well
-    setIsUrl(false); // Clear URL status
-    setError(null); // Clear error on clear
+    setOriginalArticleInput(null);
+    setIsUrl(false);
+    setError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -167,9 +166,9 @@ export function useComicGenerator(): ComicGeneratorResult {
     setTags(null);
     setMainImagePrompt(null);
     setSimpleMainImagePrompt(null);
-    setOriginalArticleInput(null); // Clear original article input before new submission
-    setIsUrl(false); // Clear URL status before new submission
-    setError(null); // Clear error on new submission
+    setOriginalArticleInput(null);
+    setIsUrl(false);
+    setError(null);
 
     try {
       const response = await fetch('/api/generate-comic', {
@@ -177,7 +176,7 @@ export function useComicGenerator(): ComicGeneratorResult {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ article, selectedStyle }),
+        body: JSON.stringify({ article, selectedStyle, selectedAspectRatio }),
       });
 
       const data = await response.json();
@@ -215,6 +214,8 @@ export function useComicGenerator(): ComicGeneratorResult {
     setArticle,
     selectedStyle,
     setSelectedStyle,
+    selectedAspectRatio,
+    setSelectedAspectRatio,
     loading,
     showStyleSelector,
     setShowStyleSelector,
@@ -231,6 +232,6 @@ export function useComicGenerator(): ComicGeneratorResult {
     handleSubmit,
     handleClear,
     handleDownload,
-    error, // Expose error state
+    error,
   };
 }

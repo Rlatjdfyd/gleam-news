@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { IMAGE_STYLES, PANEL_COLORS } from '../constants';
+import { IMAGE_STYLES, PANEL_COLORS, ASPECT_RATIOS } from '../constants';
 
 import { useComicGenerator } from '../hooks/useComicGenerator';
 
@@ -12,6 +12,8 @@ export default function Home() {
     setArticle,
     selectedStyle,
     setSelectedStyle,
+    selectedAspectRatio,
+    setSelectedAspectRatio,
     loading,
     showStyleSelector,
     setShowStyleSelector,
@@ -53,6 +55,7 @@ export default function Home() {
           {showStyleSelector && (
             <>
               <div className="mb-4 mt-4">
+                <label htmlFor="image-style" className="block text-sm font-medium text-gray-700 mb-1">이미지 스타일</label>
                 <select
                   id="image-style"
                   value={selectedStyle}
@@ -62,6 +65,21 @@ export default function Home() {
                   {IMAGE_STYLES.map((style) => (
                     <option key={style.value} value={style.value}>
                       {style.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label htmlFor="aspect-ratio" className="block text-sm font-medium text-gray-700 mb-1">이미지 비율</label>
+                <select
+                  id="aspect-ratio"
+                  value={selectedAspectRatio}
+                  onChange={(e) => setSelectedAspectRatio(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 transition text-base"
+                >
+                  {ASPECT_RATIOS.map((ratio) => (
+                    <option key={ratio.value} value={ratio.value}>
+                      {ratio.name}
                     </option>
                   ))}
                 </select>

@@ -35,11 +35,11 @@ interface Panel {
   };
 }
 
-async function generateTextData(apiKey: string, article: string, imageStyle: string) {
+async function generateTextData(apiKey: string, article: string, imageStyle: string, aspectRatio: string) {
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-  const metaPrompt = getComicGeneratorPrompt(imageStyle, article);
+  const metaPrompt = getComicGeneratorPrompt(imageStyle, article, aspectRatio);
     
 
   const result = await model.generateContent(metaPrompt);
@@ -70,7 +70,7 @@ async function generateTextData(apiKey: string, article: string, imageStyle: str
 
 export async function POST(request: Request) {
   try {
-    const { article, selectedStyle } = await request.json();
+    const { article, selectedStyle, selectedAspectRatio } = await request.json();
     const apiKey = process.env.GOOGLE_API_KEY;
 
     if (!apiKey) {
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
     }
 
     // 1. 텍스트 데이터 (프롬프트 포함) 생성
-    const textData = await generateTextData(apiKey, processedArticle, selectedStyle);
+    const textData = await generateTextData(apiKey, processedArticle, selectedStyle, selectedAspectRatio);
 
     // 2. 텍스트 데이터 재구성
     const { title, main_prompt, simple_main_prompt, panels, tags } = textData;
