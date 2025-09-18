@@ -23,8 +23,12 @@ export default function NewsFeed() {
         const data = await response.json();
         setNews(data.news);
         setTotal(data.total);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('알 수 없는 오류가 발생했습니다.');
+        }
       } finally {
         setLoading(false);
       }

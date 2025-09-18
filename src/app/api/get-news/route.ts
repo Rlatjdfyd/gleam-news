@@ -12,7 +12,7 @@ export async function GET() {
     const result = await parseStringPromise(xmlText);
 
     const items = result.rss.channel[0].item;
-    const newsItems = items.slice(0, 10).map((item: any) => ({
+    const newsItems = items.slice(0, 10).map((item: { title: string[], link: string[] }) => ({
       title: item.title[0],
       link: item.link[0],
     }));
