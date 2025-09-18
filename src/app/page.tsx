@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { IMAGE_STYLES, PANEL_COLORS, ASPECT_RATIOS } from '../constants';
+import NewsFeed from '../components/NewsFeed';
 
 import { useComicGenerator } from '../hooks/useComicGenerator';
 
@@ -34,6 +35,7 @@ export default function Home() {
   } = useComicGenerator();
 
   const [activeTone, setActiveTone] = useState<'expository' | 'interrogative' | 'summary'>('expository');
+  const [showNewsFeed, setShowNewsFeed] = useState(true);
 
   return (
     <main className="flex min-h-screen flex-col items-center p-6 sm:p-12 bg-gray-50">
@@ -101,6 +103,16 @@ export default function Home() {
             {loading ? 'AI가 이미지를 생성하는 중...' : '글림뉴스 생성하기'}
           </button>
         </form>
+
+        <button
+          type="button"
+          onClick={() => setShowNewsFeed(!showNewsFeed)}
+          className="w-full mt-4 mb-4 px-4 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-300 transition-colors text-base"
+        >
+          {showNewsFeed ? '뉴스 목록 숨기기' : '뉴스 목록 보기'}
+        </button>
+
+        {showNewsFeed && <NewsFeed />}
 
         {error && (
           <div className="text-center p-4 mb-8 bg-red-100 border border-red-400 text-red-700 rounded-lg" role="alert">
